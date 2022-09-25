@@ -1,0 +1,44 @@
+Enabling Uncensored DNS over HTTPS on a OpenWrt router.
+
+You need to ssh into your openwrt router, if you do not know how, visit https://forum.openwrt.org for questions and answers.
+
+You need to do everything via cli because when you do this by the Luci interface and you hit 'save and apply' everything goes bananas. (this is because 
+the package is using default provider vallues and when you use luci it will scramble up al your settings. 
+You can install the luci package, but just for watching and not editing)
+
+ssh into your router
+On the command line;
+opkg update 
+opkg install https-dns-proxy luci-app-https-dns-proxy
+
+Edit the following file with your favorite editor (nano or vi for example)
+/etc/config/https-dns-proxy
+
+Delete everything in it and add the following lines;
+
+config main 'config'
+  option update_dnsmasq_config '*'
+  option force_dns '1'
+  list force_dns_port '53'
+  list force_dns_port '853'
+
+config https-dns-proxy 'UncensoredDNS'
+  option bootstrap_dns '91.239.100.100,89.233.43.71,2001:67c:28a4::,2a01:3a0:53:53::'
+  option resolver_url 'https://anycast.uncensoreddns.org/dns-query'
+  option listen_addr '127.0.0.1'
+  option listen_port '5053'
+  option user 'nobody'
+  option group 'nogroup'
+
+Safe your config file and give the following command;
+
+/etc/init.d/https-dns-proxy restart
+
+Check if the service is running by;
+
+/etc/init.d/https-dns-proxy status (answer must by 'running')
+
+Check if al is working bij testing your dns, dnsleaktest.com for example. when I do that, I see;
+
+198.180.150.12	rgnet-iad.anycast.censurfridns.dk.	RGnet OU	Estonia 
+
